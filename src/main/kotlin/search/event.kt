@@ -7,7 +7,7 @@ data class SearchEvent(
 
     companion object {
         fun stage(): SearchEvent = TODO()
-        fun response(): SearchEvent = TODO()
+        fun result(): SearchEvent = TODO()
         fun done(): SearchEvent = TODO()
         fun error(): SearchEvent = TODO()
     }
