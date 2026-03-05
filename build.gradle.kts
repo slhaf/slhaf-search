@@ -27,6 +27,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core")
     implementation("io.ktor:ktor-server-netty")
     implementation("io.ktor:ktor-server-sse")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }

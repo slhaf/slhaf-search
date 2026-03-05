@@ -8,7 +8,6 @@ import io.ktor.server.sse.*
 import io.ktor.sse.*
 import work.slhaf.search.SearchMode
 import work.slhaf.search.SearchRouter
-import java.util.Locale.getDefault
 
 fun Application.configureRouting() {
 
@@ -27,10 +26,11 @@ fun Application.configureRouting() {
             val provider = request.queryParameters["provider"] ?: "default"
 
             val flow = SearchRouter.search(mode, provider, query, size)
-            flow.collect { event ->
+            flow.collect { searchEvent ->
+                val (event, data) = searchEvent.serialize()
                 val sendEvent = ServerSentEvent(
-                    event = event.event.name.lowercase(getDefault()),
-                    data = event.data
+                    event = event,
+                    data = data
                 )
                 send(sendEvent)
             }
