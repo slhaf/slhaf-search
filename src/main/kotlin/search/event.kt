@@ -1,15 +1,16 @@
 package work.slhaf.search
 
-data class SearchEvent(
-    val event: Event,
-    val data: String
-) {
+
+sealed class SearchEvent<T> {
+
+    abstract val event: Event
+    abstract val data: T
 
     companion object {
-        fun stage(): SearchEvent = TODO()
-        fun result(): SearchEvent = TODO()
-        fun done(): SearchEvent = TODO()
-        fun error(): SearchEvent = TODO()
+        fun stage(): SearchEvent<Any> = TODO()
+        fun result(): SearchEvent<Any> = TODO()
+        fun done(): SearchEvent<Any> = TODO()
+        fun error(): SearchEvent<Any> = TODO()
     }
 
     enum class Event {

@@ -13,7 +13,7 @@ object SearchRouter {
         provider: String = "default",
         query: String,
         size: Int = 30
-    ): Flow<SearchEvent> = flow {
+    ): Flow<SearchEvent<Any>> = flow {
         val searchProvider = if (provider == "default") {
             providers.values.first()
         } else {
@@ -27,25 +27,19 @@ object SearchRouter {
         }
     }
 
-    private suspend fun FlowCollector<SearchEvent>.search(provider: SearchProvider, query: String, size: Int) {
+    private suspend fun FlowCollector<SearchEvent<Any>>.search(provider: SearchProvider, query: String, size: Int) {
         emit(SearchEvent.stage())
         provider.search(query, size)
     }
 
-    private suspend fun FlowCollector<SearchEvent>.enhancedSearch(provider: SearchProvider, query: String, size: Int) {
+    private suspend fun FlowCollector<SearchEvent<Any>>.enhancedSearch(provider: SearchProvider, query: String, size: Int) {
         emit(SearchEvent.stage())
         TODO()
     }
 
-    private suspend fun FlowCollector<SearchEvent>.agenticSearch(provider: SearchProvider, query: String, size: Int) {
+    private suspend fun FlowCollector<SearchEvent<Any>>.agenticSearch(provider: SearchProvider, query: String, size: Int) {
         emit(SearchEvent.stage())
         TODO()
     }
 
-}
-
-enum class SearchMode {
-    NORMAL,
-    ENHANCED,
-    AGENTIC
 }
