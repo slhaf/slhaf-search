@@ -15,7 +15,7 @@ data class SearchEvent private constructor(
 
         fun stage(mode: SearchMode, query: String, progress: Int = 0, content: String): SearchEvent {
             val source = Source(query)
-            val data = SearchEventPayload.LoadingStageData(mode, progress, content, source)
+            val data = LoadingStageData(source, mode, progress, content)
             return SearchEvent(Event.STAGE, data)
         }
 
@@ -23,7 +23,7 @@ data class SearchEvent private constructor(
         fun done(): SearchEvent = TODO()
         fun error(mode: SearchMode, query: String, errors: List<String>): SearchEvent {
             val source = Source(query)
-            val data = SearchEventPayload.SearchError(mode, source, errors)
+            val data = SearchError(source, mode, errors)
             return SearchEvent(Event.ERROR, data)
         }
     }
@@ -41,23 +41,26 @@ data class SearchEvent private constructor(
 }
 
 @Serializable
-sealed interface SearchEventPayload {
+sealed class SearchEventPayload {
 
-    @Serializable
-    data class SearchError(
-        val mode: SearchMode,
-        val source: Source,
-        val errors: List<String>
-    ) : SearchEventPayload
+    abstract val source: Source
 
-    @Serializable
-    data class LoadingStageData(
-        val mode: SearchMode,
-        val progress: Int,
-        val content: String,
-        val source: Source
-    ) : SearchEventPayload
 }
+
+@Serializable
+data class SearchError(
+    override val source: Source,
+    val mode: SearchMode,
+    val errors: List<String>
+) : SearchEventPayload()
+
+@Serializable
+data class LoadingStageData(
+    override val source: Source,
+    val mode: SearchMode,
+    val progress: Int,
+    val content: String
+) : SearchEventPayload()
 
 
 @Serializable
