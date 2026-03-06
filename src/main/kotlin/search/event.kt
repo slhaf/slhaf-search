@@ -13,7 +13,7 @@ data class SearchEvent private constructor(
 
     companion object {
 
-        fun stage(mode: SearchMode, progress: Int = 0, content: String, query: String): SearchEvent {
+        fun stage(mode: SearchMode, query: String, progress: Int = 0, content: String): SearchEvent {
             val source = Source(query)
             val data = SearchEventPayload.LoadingStageData(mode, progress, content, source)
             return SearchEvent(Event.STAGE, data)
@@ -21,7 +21,11 @@ data class SearchEvent private constructor(
 
         fun result(): SearchEvent = TODO()
         fun done(): SearchEvent = TODO()
-        fun error(): SearchEvent = TODO()
+        fun error(mode: SearchMode, query: String, errors: List<String>): SearchEvent {
+            val source = Source(query)
+            val data = SearchEventPayload.SearchError(mode, source, errors)
+            return SearchEvent(Event.ERROR, data)
+        }
     }
 
     fun serialize(): Pair<String, String> {
@@ -38,6 +42,13 @@ data class SearchEvent private constructor(
 
 @Serializable
 sealed interface SearchEventPayload {
+
+    @Serializable
+    data class SearchError(
+        val mode: SearchMode,
+        val source: Source,
+        val errors: List<String>
+    ) : SearchEventPayload
 
     @Serializable
     data class LoadingStageData(
