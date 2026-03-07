@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import work.slhaf.search.WebContent
 import java.util.concurrent.atomic.AtomicBoolean
 
-object McpBingSearch : SearchProvider {
+object McpBingSearch : SearchProvider() {
     private val json = Json { ignoreUnknownKeys = true }
     private val executor: McpToolExecutor
     private val closeClient: () -> Unit

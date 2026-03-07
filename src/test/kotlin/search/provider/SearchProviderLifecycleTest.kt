@@ -10,7 +10,7 @@ class SearchProviderLifecycleTest {
 
     @Test
     fun defaultCloseNoop() {
-        val provider = object : SearchProvider {
+        val provider = object : SearchProvider() {
             override fun search(query: String, pageSize: Int): List<WebContent> = emptyList()
         }
 
@@ -21,7 +21,7 @@ class SearchProviderLifecycleTest {
     fun idempotentClosePattern() {
         val closeCalls = AtomicInteger(0)
         val closed = AtomicBoolean(false)
-        val provider = object : SearchProvider {
+        val provider = object : SearchProvider() {
             override fun search(query: String, pageSize: Int): List<WebContent> = emptyList()
 
             override fun close() {
