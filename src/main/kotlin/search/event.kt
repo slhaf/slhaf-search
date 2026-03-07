@@ -31,18 +31,18 @@ data class SearchEvent private constructor(
 
         fun result(
             query: String,
-            requestId: String,
+            contentId: String,
             activeAbstract: String
         ): SearchEvent = buildSearchEvent(Event.RESULT, query) {
-            SearchResult.ActiveEnhance(it, requestId, activeAbstract)
+            SearchResult.ActiveEnhance(it, contentId, activeAbstract)
         }
 
         fun result(
             query: String,
-            requestId: String,
+            contentId: String,
             summaries: List<String>
         ): SearchEvent = buildSearchEvent(Event.RESULT, query) {
-            SearchResult.ShortEnhance(it, requestId, summaries)
+            SearchResult.ShortEnhance(it, contentId, summaries)
         }
 
         fun result(
@@ -82,9 +82,9 @@ data class SearchEvent private constructor(
         fun done(
             mode: SearchMode,
             query: String,
-            requestId: String
+            contentId: String
         ): SearchEvent = buildSearchEvent(Event.DONE, query) {
-            SearchDone(it, requestId, mode)
+            SearchDone(it, contentId, mode)
         }
 
         fun error(
@@ -128,7 +128,7 @@ sealed class SearchEventPayload {
 @Serializable
 data class SearchDone(
     override val source: Source,
-    val resultId: String,
+    val contentId: String,
     val mode: SearchMode
 ) : SearchEventPayload() {
 }
@@ -145,14 +145,14 @@ sealed class SearchResult : SearchEventPayload() {
     @Serializable
     data class ActiveEnhance(
         override val source: Source,
-        val resultId: String,
+        val contentId: String,
         val activeAbstract: String
     ) : SearchResult()
 
     @Serializable
     data class ShortEnhance(
         override val source: Source,
-        val resultId: String,
+        val contentId: String,
         val summaries: List<String>
     ) : SearchResult() {
         init {
@@ -191,7 +191,7 @@ data class WebContent(
     val preview: String,
     val link: String
 ) {
-    val resultId = UUID.randomUUID().toString()
+    val id = UUID.randomUUID().toString()
 }
 
 @Serializable
