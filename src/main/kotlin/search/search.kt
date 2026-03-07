@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import work.slhaf.search.provider.McpBingSearch
 import work.slhaf.search.provider.SearchProvider
+import java.util.UUID
 
 object SearchRouter {
 
@@ -37,8 +38,7 @@ object SearchRouter {
         query: String,
         size: Int
     ) {
-        emit(SearchEvent.stage(mode = SearchMode.NORMAL, content = "Searching...", query = query))
-        provider.search(query, size)
+        emitNormalSearchEvents(provider, query, size)
     }
 
     private suspend fun FlowCollector<SearchEvent>.enhancedSearch(
@@ -63,5 +63,24 @@ object SearchRouter {
         providers.values.toSet().forEach { provider ->
             runCatching { provider.close() }
         }
+    }
+}
+
+internal suspend fun FlowCollector<SearchEvent>.emitNormalSearchEvents(
+    provider: SearchProvider,
+    query: String,
+    size: Int
+) {
+    emit(SearchEvent.stage(mode = SearchMode.NORMAL, content = "Searching...", query = query))
+    try {
+        val webContents = provider.search(query, size)
+        emit(SearchEvent.result(query = query, webContents = webContents, page = 1, pageSize = size))
+        val contentId = UUID.nameUUIDFromBytes(query.toByteArray()).toString()
+        emit(SearchEvent.done(mode = SearchMode.NORMAL, query = query, contentId = contentId))
+    } catch (e: Exception) {
+        val msg = e.message?.takeIf { it.isNotBlank() }
+            ?: e::class.simpleName
+            ?: "unknown error"
+        emit(SearchEvent.error(mode = SearchMode.NORMAL, query = query, errors = listOf(msg)))
     }
 }
