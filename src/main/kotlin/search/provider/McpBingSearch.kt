@@ -38,16 +38,16 @@ object McpBingSearch : SearchProvider {
         log.info("bing-mcp loaded")
     }
 
-    override fun search(query: String, size: Int): List<WebContent> {
+    override fun search(query: String, pageSize: Int): List<WebContent> {
         if (closed.get()) {
             log.warn("bing-mcp client already closed, skip search")
             return emptyList()
         }
         log.debug("Searching $query")
-        if (query.isBlank() || size <= 0) return emptyList()
+        if (query.isBlank() || pageSize <= 0) return emptyList()
         val arguments = buildJsonObject {
             put("query", query)
-            put("num_results", size)
+            put("num_results", pageSize)
         }
 
         val request = ToolExecutionRequest.builder()

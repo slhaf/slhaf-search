@@ -18,7 +18,7 @@ object SearchRouter {
         mode: SearchMode = SearchMode.NORMAL,
         provider: String = "default",
         query: String,
-        size: Int = 30
+        pageSize: Int = 10
     ): Flow<SearchEvent> = flow {
         val searchProvider = if (provider == "default") {
             providers.values.first()
@@ -27,24 +27,24 @@ object SearchRouter {
         }
 
         when (mode) {
-            SearchMode.NORMAL -> search(searchProvider, query, size)
-            SearchMode.ENHANCED -> enhancedSearch(searchProvider, query, size)
-            SearchMode.AGENTIC -> agenticSearch(searchProvider, query, size)
+            SearchMode.NORMAL -> search(searchProvider, query, pageSize)
+            SearchMode.ENHANCED -> enhancedSearch(searchProvider, query, pageSize)
+            SearchMode.AGENTIC -> agenticSearch(searchProvider, query, pageSize)
         }
     }
 
     private suspend fun FlowCollector<SearchEvent>.search(
         provider: SearchProvider,
         query: String,
-        size: Int
+        pageSize: Int
     ) {
-        emitNormalSearchEvents(provider, query, size)
+        emitNormalSearchEvents(provider, query, pageSize)
     }
 
     private suspend fun FlowCollector<SearchEvent>.enhancedSearch(
         provider: SearchProvider,
         query: String,
-        size: Int
+        pageSize: Int
     ) {
         emit(SearchEvent.stage(mode = SearchMode.ENHANCED, content = "Enhanced Searching...", query = query))
         TODO()
@@ -53,7 +53,7 @@ object SearchRouter {
     private suspend fun FlowCollector<SearchEvent>.agenticSearch(
         provider: SearchProvider,
         query: String,
-        size: Int
+        pageSize: Int
     ) {
         emit(SearchEvent.stage(mode = SearchMode.AGENTIC, content = "Agentic Searching...", query = query))
         TODO()
@@ -69,12 +69,12 @@ object SearchRouter {
 internal suspend fun FlowCollector<SearchEvent>.emitNormalSearchEvents(
     provider: SearchProvider,
     query: String,
-    size: Int
+    pageSize: Int
 ) {
     emit(SearchEvent.stage(mode = SearchMode.NORMAL, content = "Searching...", query = query))
     try {
-        val webContents = provider.search(query, size)
-        emit(SearchEvent.result(query = query, webContents = webContents, page = 1, pageSize = size))
+        val webContents = provider.search(query, pageSize)
+        emit(SearchEvent.result(query = query, webContents = webContents, page = 1, pageSize = pageSize))
         val contentId = UUID.nameUUIDFromBytes(query.toByteArray()).toString()
         emit(SearchEvent.done(mode = SearchMode.NORMAL, query = query, contentId = contentId))
     } catch (e: Exception) {

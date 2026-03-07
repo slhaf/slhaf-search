@@ -13,7 +13,7 @@ class SearchRouterNormalFlowTest {
     @Test
     fun successEmitsStageResultDone() = runBlocking {
         val provider = object : SearchProvider {
-            override fun search(query: String, size: Int): List<WebContent> = listOf(
+            override fun search(query: String, pageSize: Int): List<WebContent> = listOf(
                 WebContent(
                     title = "t1",
                     abstract = "a1",
@@ -36,7 +36,7 @@ class SearchRouterNormalFlowTest {
     @Test
     fun emptyResultStillEmitsResultAndDone() = runBlocking {
         val provider = object : SearchProvider {
-            override fun search(query: String, size: Int): List<WebContent> = emptyList()
+            override fun search(query: String, pageSize: Int): List<WebContent> = emptyList()
         }
 
         val events = flow {
@@ -54,7 +54,7 @@ class SearchRouterNormalFlowTest {
     @Test
     fun exceptionEmitsStageAndErrorOnly() = runBlocking {
         val provider = object : SearchProvider {
-            override fun search(query: String, size: Int): List<WebContent> {
+            override fun search(query: String, pageSize: Int): List<WebContent> {
                 throw IllegalStateException("boom")
             }
         }
@@ -74,7 +74,7 @@ class SearchRouterNormalFlowTest {
     @Test
     fun doneContentIdStableForSameQuery() = runBlocking {
         val provider = object : SearchProvider {
-            override fun search(query: String, size: Int): List<WebContent> = emptyList()
+            override fun search(query: String, pageSize: Int): List<WebContent> = emptyList()
         }
 
         val first = flow { emitNormalSearchEvents(provider, "stable-query", 10) }.toList()

@@ -22,10 +22,10 @@ fun Application.configureRouting() {
                 ?.uppercase()
                 ?.let { SearchMode.valueOf(it) }
                 ?: SearchMode.NORMAL
-            val size = request.queryParameters["size"]?.toIntOrNull() ?: 30
+            val pageSize = request.queryParameters["size"]?.toIntOrNull() ?: 10
             val provider = request.queryParameters["provider"] ?: "default"
 
-            val flow = SearchRouter.search(mode, provider, query, size)
+            val flow = SearchRouter.search(mode, provider, query, pageSize)
             flow.collect { searchEvent ->
                 val (event, data) = searchEvent.serialize()
                 val sendEvent = ServerSentEvent(
