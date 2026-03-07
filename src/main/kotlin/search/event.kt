@@ -50,7 +50,7 @@ data class SearchEvent private constructor(
             webContents: List<WebContent>,
             page: Int,
             pageSize: Int,
-        ): SearchEvent = buildSearchEvent(Event.RESULT,query){
+        ): SearchEvent = buildSearchEvent(Event.RESULT, query) {
 
             val totalCount = webContents.size
 
@@ -79,7 +79,13 @@ data class SearchEvent private constructor(
             )
         }
 
-        fun done(): SearchEvent = TODO()
+        fun done(
+            mode: SearchMode,
+            query: String,
+            requestId: String
+        ): SearchEvent = buildSearchEvent(Event.DONE, query) {
+            SearchDone(it, requestId, mode)
+        }
 
         fun error(
             mode: SearchMode,
@@ -117,6 +123,14 @@ sealed class SearchEventPayload {
 
     abstract val source: Source
 
+}
+
+@Serializable
+data class SearchDone(
+    override val source: Source,
+    val resultId: String,
+    val mode: SearchMode
+) : SearchEventPayload() {
 }
 
 @Serializable
