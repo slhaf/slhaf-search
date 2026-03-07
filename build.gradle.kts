@@ -19,6 +19,11 @@ kotlin {
 }
 
 dependencies {
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.9.1"))
+
+    implementation("dev.langchain4j:langchain4j")
+    implementation("dev.langchain4j:langchain4j-mcp")
+
     implementation("io.ktor:ktor-server-core")
     implementation("io.ktor:ktor-server-content-negotiation")
     implementation("io.ktor:ktor-serialization-kotlinx-json")
@@ -28,6 +33,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
     implementation("io.ktor:ktor-server-sse")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
+
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
