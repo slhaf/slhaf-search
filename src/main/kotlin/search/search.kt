@@ -3,10 +3,15 @@ package work.slhaf.search
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
+import work.slhaf.search.provider.McpBingSearch
+import work.slhaf.search.provider.SearchProvider
 
 object SearchRouter {
 
-    private val providers = mapOf<String, SearchProvider>()
+    private val providers = mapOf<String, SearchProvider>(
+        "default" to McpBingSearch,
+        "bing" to McpBingSearch
+    )
 
     fun search(
         mode: SearchMode = SearchMode.NORMAL,
@@ -54,4 +59,9 @@ object SearchRouter {
         TODO()
     }
 
+    fun closeAllProviders() {
+        providers.values.toSet().forEach { provider ->
+            runCatching { provider.close() }
+        }
+    }
 }
