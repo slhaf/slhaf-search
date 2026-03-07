@@ -15,42 +15,42 @@ data class SearchEvent private constructor(
 
         fun stage(
             mode: SearchMode,
-            query: String,
+            source: Source,
             progress: Int = 0,
             content: String
-        ): SearchEvent = buildSearchEvent(Event.STAGE, query) {
-            LoadingStageData(it, mode, progress, content)
+        ): SearchEvent = buildSearchEvent(Event.STAGE, source) {
+            LoadingStageData(source, mode, progress, content)
         }
 
         fun result(
-            query: String,
+            source: Source,
             suppliedSources: List<Source>
-        ): SearchEvent = buildSearchEvent(Event.RESULT, query) {
-            SearchResult.Agentic(it, suppliedSources)
+        ): SearchEvent = buildSearchEvent(Event.RESULT, source) {
+            SearchResult.Agentic(source, suppliedSources)
         }
 
         fun result(
-            query: String,
+            source: Source,
             contentId: String,
             activeAbstract: String
-        ): SearchEvent = buildSearchEvent(Event.RESULT, query) {
-            SearchResult.ActiveEnhance(it, contentId, activeAbstract)
+        ): SearchEvent = buildSearchEvent(Event.RESULT, source) {
+            SearchResult.ActiveEnhance(source, contentId, activeAbstract)
         }
 
         fun result(
-            query: String,
+            source: Source,
             contentId: String,
             summaries: List<String>
-        ): SearchEvent = buildSearchEvent(Event.RESULT, query) {
-            SearchResult.ShortEnhance(it, contentId, summaries)
+        ): SearchEvent = buildSearchEvent(Event.RESULT, source) {
+            SearchResult.ShortEnhance(source, contentId, summaries)
         }
 
         fun result(
-            query: String,
+            source: Source,
             webContents: List<WebContent>,
             page: Int,
             pageSize: Int,
-        ): SearchEvent = buildSearchEvent(Event.RESULT, query) {
+        ): SearchEvent = buildSearchEvent(Event.RESULT, source) {
 
             val totalCount = webContents.size
 
@@ -72,7 +72,7 @@ data class SearchEvent private constructor(
                     emptyList()
 
             SearchResult.Search(
-                source = it,
+                source = source,
                 totalCount = totalCount,
                 pageCount = pageCount,
                 results = results
@@ -81,26 +81,25 @@ data class SearchEvent private constructor(
 
         fun done(
             mode: SearchMode,
-            query: String,
+            source: Source,
             contentId: String
-        ): SearchEvent = buildSearchEvent(Event.DONE, query) {
-            SearchDone(it, contentId, mode)
+        ): SearchEvent = buildSearchEvent(Event.DONE, source) {
+            SearchDone(source, contentId, mode)
         }
 
         fun error(
             mode: SearchMode,
-            query: String,
+            source: Source,
             errors: List<String>
-        ): SearchEvent = buildSearchEvent(Event.ERROR, query) {
-            SearchError(it, mode, errors)
+        ): SearchEvent = buildSearchEvent(Event.ERROR, source) {
+            SearchError(source, mode, errors)
         }
 
         private fun buildSearchEvent(
             event: Event,
-            query: String,
+            source: Source,
             buildPayload: (source: Source) -> SearchEventPayload
         ): SearchEvent {
-            val source = Source(query)
             val payload = buildPayload(source)
             return SearchEvent(event, payload)
         }

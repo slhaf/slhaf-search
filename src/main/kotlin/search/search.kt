@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import work.slhaf.search.provider.McpBingSearch
 import work.slhaf.search.provider.SearchProvider
-import java.util.UUID
 
 object SearchRouter {
 
@@ -25,37 +24,38 @@ object SearchRouter {
         } else {
             providers[provider] ?: providers.values.first()
         }
+        val source = Source(query = query)
 
         when (mode) {
-            SearchMode.NORMAL -> search(searchProvider, query, pageSize)
-            SearchMode.ENHANCED -> enhancedSearch(searchProvider, query, pageSize)
-            SearchMode.AGENTIC -> agenticSearch(searchProvider, query, pageSize)
+            SearchMode.NORMAL -> search(searchProvider, source, pageSize)
+            SearchMode.ENHANCED -> enhancedSearch(searchProvider, source, pageSize)
+            SearchMode.AGENTIC -> agenticSearch(searchProvider, source, pageSize)
         }
     }
 
     private suspend fun FlowCollector<SearchEvent>.search(
         provider: SearchProvider,
-        query: String,
+        source: Source,
         pageSize: Int
     ) {
-        emitNormalSearchEvents(provider, query, pageSize)
+        emitNormalSearchEvents(provider, source, pageSize)
     }
 
     private suspend fun FlowCollector<SearchEvent>.enhancedSearch(
         provider: SearchProvider,
-        query: String,
+        source: Source,
         pageSize: Int
     ) {
-        emit(SearchEvent.stage(mode = SearchMode.ENHANCED, content = "Enhanced Searching...", query = query))
+        emit(SearchEvent.stage(mode = SearchMode.ENHANCED, content = "Enhanced Searching...", source = source))
         TODO()
     }
 
     private suspend fun FlowCollector<SearchEvent>.agenticSearch(
         provider: SearchProvider,
-        query: String,
+        source: Source,
         pageSize: Int
     ) {
-        emit(SearchEvent.stage(mode = SearchMode.AGENTIC, content = "Agentic Searching...", query = query))
+        emit(SearchEvent.stage(mode = SearchMode.AGENTIC, content = "Agentic Searching...", source = source))
         TODO()
     }
 
@@ -68,19 +68,19 @@ object SearchRouter {
 
 internal suspend fun FlowCollector<SearchEvent>.emitNormalSearchEvents(
     provider: SearchProvider,
-    query: String,
+    source: Source,
     pageSize: Int
 ) {
-    emit(SearchEvent.stage(mode = SearchMode.NORMAL, content = "Searching...", query = query))
+    emit(SearchEvent.stage(mode = SearchMode.NORMAL, content = "Searching...", source = source))
     try {
-        val webContents = provider.search(query, pageSize)
-        emit(SearchEvent.result(query = query, webContents = webContents, page = 1, pageSize = pageSize))
-        val contentId = UUID.nameUUIDFromBytes(query.toByteArray()).toString()
-        emit(SearchEvent.done(mode = SearchMode.NORMAL, query = query, contentId = contentId))
+        val webContents = provider.search(source.query, pageSize)
+        provider.putCache(source.id, webContents)
+        emit(SearchEvent.result(source = source, webContents = webContents, page = 1, pageSize = pageSize))
+        emit(SearchEvent.done(mode = SearchMode.NORMAL, source = source, contentId = source.id))
     } catch (e: Exception) {
         val msg = e.message?.takeIf { it.isNotBlank() }
             ?: e::class.simpleName
             ?: "unknown error"
-        emit(SearchEvent.error(mode = SearchMode.NORMAL, query = query, errors = listOf(msg)))
+        emit(SearchEvent.error(mode = SearchMode.NORMAL, source = source, errors = listOf(msg)))
     }
 }
