@@ -9,7 +9,6 @@ import work.slhaf.search.provider.SearchProvider
 object SearchRouter {
 
     private val providers = mapOf<String, SearchProvider>(
-        "default" to McpBingSearch,
         "bing" to McpBingSearch
     )
 
