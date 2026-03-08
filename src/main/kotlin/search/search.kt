@@ -25,6 +25,32 @@ object SearchRouter {
         }
         val source = Source(query = query)
 
+        suspend fun FlowCollector<SearchEvent>.search(
+            provider: SearchProvider,
+            source: Source,
+            pageSize: Int
+        ) {
+            emitNormalSearchEvents(provider, source, pageSize)
+        }
+
+        suspend fun FlowCollector<SearchEvent>.enhancedSearch(
+            provider: SearchProvider,
+            source: Source,
+            pageSize: Int
+        ) {
+            emit(SearchEvent.stage(mode = SearchMode.ENHANCED, content = "Enhanced Searching...", source = source))
+            TODO()
+        }
+
+        suspend fun FlowCollector<SearchEvent>.agenticSearch(
+            provider: SearchProvider,
+            source: Source,
+            pageSize: Int
+        ) {
+            emit(SearchEvent.stage(mode = SearchMode.AGENTIC, content = "Agentic Searching...", source = source))
+            TODO()
+        }
+
         when (mode) {
             SearchMode.NORMAL -> search(searchProvider, source, pageSize)
             SearchMode.ENHANCED -> enhancedSearch(searchProvider, source, pageSize)
@@ -32,31 +58,9 @@ object SearchRouter {
         }
     }
 
-    private suspend fun FlowCollector<SearchEvent>.search(
-        provider: SearchProvider,
-        source: Source,
-        pageSize: Int
-    ) {
-        emitNormalSearchEvents(provider, source, pageSize)
+
     }
 
-    private suspend fun FlowCollector<SearchEvent>.enhancedSearch(
-        provider: SearchProvider,
-        source: Source,
-        pageSize: Int
-    ) {
-        emit(SearchEvent.stage(mode = SearchMode.ENHANCED, content = "Enhanced Searching...", source = source))
-        TODO()
-    }
-
-    private suspend fun FlowCollector<SearchEvent>.agenticSearch(
-        provider: SearchProvider,
-        source: Source,
-        pageSize: Int
-    ) {
-        emit(SearchEvent.stage(mode = SearchMode.AGENTIC, content = "Agentic Searching...", source = source))
-        TODO()
-    }
 
     fun closeAllProviders() {
         providers.values.toSet().forEach { provider ->
