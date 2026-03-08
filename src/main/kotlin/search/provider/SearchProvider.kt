@@ -21,7 +21,7 @@ abstract class SearchProvider {
 
     open fun close() {}
 
-    fun putCache(queryId: String, result: List<WebContent>) {
+    private fun putCache(queryId: String, result: List<WebContent>) {
         cache[queryId] = result
     }
 
