@@ -9,7 +9,7 @@ class SearchProviderPagingTest {
 
     private fun createProvider(): SearchProvider {
         return object : SearchProvider() {
-            override fun search(query: String, pageSize: Int): List<WebContent> = emptyList()
+            override fun doSearch(query: String, pageSize: Int): List<WebContent> = emptyList()
         }
     }
 

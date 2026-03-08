@@ -49,20 +49,5 @@ class McpTest {
         println("=== search result ===")
         println(searchResult)
 
-        val fetchRequest = ToolExecutionRequest.builder()
-            .name("mcp__fetch_webpage")
-            .arguments(
-                """
-                    {
-                      "result_id": 1
-                    }
-                    """.trimIndent()
-            )
-            .build()
-
-        val pageResult = executor.execute(fetchRequest, "default")
-        println("=== page result ===")
-        println(pageResult)
-
     }
 }

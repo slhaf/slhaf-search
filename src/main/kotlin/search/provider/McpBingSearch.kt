@@ -34,7 +34,7 @@ object McpBingSearch : SearchProvider() {
         log.info("bing-mcp loaded")
     }
 
-    override fun search(query: String, pageSize: Int): List<WebContent> {
+    override fun doSearch(query: String, pageSize: Int): List<WebContent> {
         if (closed.get()) {
             log.warn("bing-mcp client already closed, skip search")
             return emptyList()

@@ -72,8 +72,7 @@ internal suspend fun FlowCollector<SearchEvent>.emitNormalSearchEvents(
 ) {
     emit(SearchEvent.stage(mode = SearchMode.NORMAL, content = "Searching...", source = source))
     try {
-        val webContents = provider.search(source.query, pageSize)
-        provider.putCache(source.id, webContents)
+        val webContents = provider.search(source, pageSize)
         emit(SearchEvent.result(source = source, webContents = webContents, page = 1, pageSize = pageSize))
         emit(SearchEvent.done(mode = SearchMode.NORMAL, source = source, contentId = source.id))
     } catch (e: Exception) {

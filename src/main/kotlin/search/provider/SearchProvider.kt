@@ -2,6 +2,7 @@ package work.slhaf.search.provider
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import work.slhaf.search.Source
 import work.slhaf.search.WebContent
 
 abstract class SearchProvider {
@@ -10,7 +11,13 @@ abstract class SearchProvider {
 
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    abstract fun search(query: String, pageSize: Int): List<WebContent>
+    fun search(source: Source, pageSize: Int): List<WebContent> {
+        val result = doSearch(source.query, pageSize)
+        putCache(source.id, result)
+        return result
+    }
+
+    protected abstract fun doSearch(query: String, pageSize: Int): List<WebContent>
 
     open fun close() {}
 
