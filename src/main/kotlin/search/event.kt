@@ -79,6 +79,20 @@ data class SearchEvent private constructor(
             )
         }
 
+        fun result(
+            source: Source,
+            totalCount: Int,
+            pageCount: Int,
+            results: List<WebContent>
+        ): SearchEvent = buildSearchEvent(Event.RESULT, source) {
+            SearchResult.Search(
+                source = source,
+                totalCount = totalCount,
+                pageCount = pageCount,
+                results = results
+            )
+        }
+
         fun done(
             mode: SearchMode,
             source: Source,
@@ -195,7 +209,7 @@ data class WebContent(
 
 @Serializable
 data class Source(
-    val query: String
+    val query: String,
+    val id: String = UUID.randomUUID().toString()
 ) {
-    val id = UUID.randomUUID().toString()
 }

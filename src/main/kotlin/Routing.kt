@@ -35,5 +35,33 @@ fun Application.configureRouting() {
                 send(sendEvent)
             }
         }
+
+        sse("/search/{id}") {
+            val id = call.parameters["id"] ?: return@sse call.respond(
+                HttpStatusCode.BadRequest,
+                "missing path parameter id"
+            )
+            val mode = call.request.queryParameters["mode"]
+                ?.uppercase()
+                ?.let { SearchMode.valueOf(it) }
+                ?: SearchMode.NORMAL
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 10
+
+            val flow = SearchRouter.selectPage(
+                mode = mode,
+                id = id,
+                page = page,
+                pageSize = pageSize
+            )
+            flow.collect { searchEvent ->
+                val (event, data) = searchEvent.serialize()
+                val sendEvent = ServerSentEvent(
+                    event = event,
+                    data = data
+                )
+                send(sendEvent)
+            }
+        }
     }
 }
