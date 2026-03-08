@@ -23,6 +23,7 @@ dependencies {
 
     implementation("dev.langchain4j:langchain4j")
     implementation("dev.langchain4j:langchain4j-mcp")
+    implementation("dev.langchain4j:langchain4j-open-ai")
 
     implementation("io.ktor:ktor-server-core")
     implementation("io.ktor:ktor-server-content-negotiation")
