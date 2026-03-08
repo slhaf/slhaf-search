@@ -41,15 +41,10 @@ fun Application.configureRouting() {
                 HttpStatusCode.BadRequest,
                 "missing path parameter id"
             )
-            val mode = call.request.queryParameters["mode"]
-                ?.uppercase()
-                ?.let { SearchMode.valueOf(it) }
-                ?: SearchMode.NORMAL
             val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
             val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 10
 
             val flow = SearchRouter.selectPage(
-                mode = mode,
                 id = id,
                 page = page,
                 pageSize = pageSize

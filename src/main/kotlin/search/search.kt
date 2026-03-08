@@ -13,6 +13,7 @@ object SearchRouter {
     internal var providers = mapOf<String, SearchProvider>(
         "bing" to McpBingSearch
     )
+    internal val modeBySourceId = mutableMapOf<String, SearchMode>()
 
     private fun resolveProvider(provider: String = defaultProviderKey): SearchProvider {
         return if (provider == defaultProviderKey) {
@@ -30,6 +31,7 @@ object SearchRouter {
     ): Flow<SearchEvent> = flow {
         val searchProvider = resolveProvider(provider)
         val source = Source(query = query)
+        modeBySourceId[source.id] = mode
 
         suspend fun FlowCollector<SearchEvent>.search(
             provider: SearchProvider,
@@ -65,11 +67,22 @@ object SearchRouter {
     }
 
     fun selectPage(
-        mode: SearchMode,
         id: String,
         page: Int, pageSize: Int,
     ): Flow<SearchEvent> = flow {
         val source = Source(query = id, id = id)
+        val mode = modeBySourceId[id]
+        if (mode == null) {
+            emit(SearchEvent.stage(mode = SearchMode.NORMAL, content = "Selecting page...", source = source))
+            emit(
+                SearchEvent.error(
+                    mode = SearchMode.NORMAL,
+                    source = source,
+                    errors = listOf("mode not found for source id: $id")
+                )
+            )
+            return@flow
+        }
         when (mode) {
             SearchMode.NORMAL -> {
                 val provider = resolveProvider()
@@ -116,6 +129,7 @@ object SearchRouter {
 
 
     fun closeAllProviders() {
+        modeBySourceId.clear()
         providers.values.toSet().forEach { provider ->
             runCatching { provider.close() }
         }

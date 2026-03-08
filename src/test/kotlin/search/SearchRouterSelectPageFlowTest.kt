@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import work.slhaf.search.provider.SearchProvider
 
@@ -31,12 +32,16 @@ class SearchRouterSelectPageFlowTest {
         providers: Map<String, SearchProvider>,
         block: suspend () -> Unit
     ) {
-        val backup = SearchRouter.providers
+        val providerBackup = SearchRouter.providers
+        val modeBackup = SearchRouter.modeBySourceId.toMap()
         SearchRouter.providers = providers
+        SearchRouter.modeBySourceId.clear()
         try {
             block()
         } finally {
-            SearchRouter.providers = backup
+            SearchRouter.providers = providerBackup
+            SearchRouter.modeBySourceId.clear()
+            SearchRouter.modeBySourceId.putAll(modeBackup)
         }
     }
 
@@ -47,8 +52,8 @@ class SearchRouterSelectPageFlowTest {
         provider.search(source, pageSize = 10)
 
         withProvidersForTest(mapOf("test" to provider)) {
+            SearchRouter.modeBySourceId[source.id] = SearchMode.NORMAL
             val events = SearchRouter.selectPage(
-                mode = SearchMode.NORMAL,
                 id = source.id,
                 page = 2,
                 pageSize = 3
@@ -75,7 +80,6 @@ class SearchRouterSelectPageFlowTest {
 
         withProvidersForTest(mapOf("test" to provider)) {
             val events = SearchRouter.selectPage(
-                mode = SearchMode.NORMAL,
                 id = "missing-id",
                 page = 1,
                 pageSize = 3
@@ -86,7 +90,7 @@ class SearchRouterSelectPageFlowTest {
                 events.map { it.event }
             )
             val error = events[1].data as SearchError
-            assertTrue(error.errors.first().contains("cache miss"))
+            assertTrue(error.errors.first().contains("mode not found"))
         }
     }
 
@@ -97,8 +101,8 @@ class SearchRouterSelectPageFlowTest {
         provider.search(source, pageSize = 5)
 
         withProvidersForTest(mapOf("test" to provider)) {
+            SearchRouter.modeBySourceId[source.id] = SearchMode.NORMAL
             val invalidPageEvents = SearchRouter.selectPage(
-                mode = SearchMode.NORMAL,
                 id = source.id,
                 page = 0,
                 pageSize = 3
@@ -110,7 +114,6 @@ class SearchRouterSelectPageFlowTest {
             assertEquals(2, invalidPageResult.pageCount)
 
             val invalidPageSizeEvents = SearchRouter.selectPage(
-                mode = SearchMode.NORMAL,
                 id = source.id,
                 page = 1,
                 pageSize = 0
@@ -130,8 +133,8 @@ class SearchRouterSelectPageFlowTest {
         provider.search(source, pageSize = 5)
 
         withProvidersForTest(mapOf("test" to provider)) {
+            SearchRouter.modeBySourceId[source.id] = SearchMode.NORMAL
             val events = SearchRouter.selectPage(
-                mode = SearchMode.NORMAL,
                 id = source.id,
                 page = 10,
                 pageSize = 2
@@ -154,9 +157,9 @@ class SearchRouterSelectPageFlowTest {
         val provider = createProvider(emptyMap())
 
         withProvidersForTest(mapOf("test" to provider)) {
+            SearchRouter.modeBySourceId["id"] = SearchMode.ENHANCED
             val error = runCatching {
                 SearchRouter.selectPage(
-                    mode = SearchMode.ENHANCED,
                     id = "id",
                     page = 1,
                     pageSize = 10
@@ -172,9 +175,9 @@ class SearchRouterSelectPageFlowTest {
         val provider = createProvider(emptyMap())
 
         withProvidersForTest(mapOf("test" to provider)) {
+            SearchRouter.modeBySourceId["id"] = SearchMode.AGENTIC
             val error = runCatching {
                 SearchRouter.selectPage(
-                    mode = SearchMode.AGENTIC,
                     id = "id",
                     page = 1,
                     pageSize = 10
@@ -182,6 +185,25 @@ class SearchRouterSelectPageFlowTest {
             }.exceptionOrNull()
 
             assertIs<NotImplementedError>(error)
+        }
+    }
+
+    @Test
+    fun recordsModeFromInitialSearch() = runBlocking {
+        val provider = createProvider(mapOf("q4" to seedData(2)))
+
+        withProvidersForTest(mapOf("test" to provider)) {
+            val events = SearchRouter.search(
+                mode = SearchMode.NORMAL,
+                provider = "test",
+                query = "q4",
+                pageSize = 2
+            ).toList()
+
+            val sourceId = events.first().data.source.id
+            val mode = SearchRouter.modeBySourceId[sourceId]
+            assertNotNull(mode)
+            assertEquals(SearchMode.NORMAL, mode)
         }
     }
 }
