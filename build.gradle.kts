@@ -19,7 +19,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.9.1"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.12.1"))
 
     implementation("dev.langchain4j:langchain4j")
     implementation("dev.langchain4j:langchain4j-mcp")
