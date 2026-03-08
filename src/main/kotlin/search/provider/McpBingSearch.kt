@@ -11,8 +11,6 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import work.slhaf.search.WebContent
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -21,8 +19,6 @@ object McpBingSearch : SearchProvider() {
     private val executor: McpToolExecutor
     private val closeClient: () -> Unit
     private val closed = AtomicBoolean(false)
-
-    val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         val transport: McpTransport = StdioMcpTransport.builder()

@@ -1,10 +1,14 @@
 package work.slhaf.search.provider
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import work.slhaf.search.WebContent
 
 abstract class SearchProvider {
 
     val cache = mutableMapOf<String, List<WebContent>>()
+
+    val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     abstract fun search(query: String, pageSize: Int): List<WebContent>
 
