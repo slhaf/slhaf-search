@@ -8,15 +8,15 @@ import work.slhaf.search.provider.SearchProvider
 
 object SearchRouter {
 
-    private val defaultProviderKey = "default"
+    private const val DEFAULT_PROVIDER_KEY = "default"
 
     internal var providers = mapOf<String, SearchProvider>(
         "bing" to McpBingSearch
     )
     internal val modeBySourceId = mutableMapOf<String, SearchMode>()
 
-    private fun resolveProvider(provider: String = defaultProviderKey): SearchProvider {
-        return if (provider == defaultProviderKey) {
+    private fun resolveProvider(provider: String = DEFAULT_PROVIDER_KEY): SearchProvider {
+        return if (provider == DEFAULT_PROVIDER_KEY) {
             providers.values.first()
         } else {
             providers[provider] ?: providers.values.first()
@@ -25,7 +25,7 @@ object SearchRouter {
 
     fun search(
         mode: SearchMode = SearchMode.NORMAL,
-        provider: String = defaultProviderKey,
+        provider: String = DEFAULT_PROVIDER_KEY,
         query: String,
         pageSize: Int = 10
     ): Flow<SearchEvent> = flow {
