@@ -1,13 +1,8 @@
 package work.slhaf.experimental
 
-import dev.langchain4j.agent.tool.ToolExecutionRequest
-import dev.langchain4j.agent.tool.ToolSpecification
-import dev.langchain4j.mcp.McpToolExecutor
-import dev.langchain4j.mcp.client.DefaultMcpClient
-import dev.langchain4j.mcp.client.McpClient
-import dev.langchain4j.mcp.client.transport.McpTransport
-import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport
-import dev.langchain4j.service.tool.ToolExecutor
+import com.microsoft.playwright.BrowserType
+import com.microsoft.playwright.options.LoadState
+import com.microsoft.playwright.Playwright
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Comment
 import org.jsoup.nodes.Document
@@ -308,90 +303,49 @@ line3</code></pre>
 
     @Test
     fun usableTest() {
-        val transport: McpTransport = StdioMcpTransport.builder()
-            .command(listOf("npx", "-y", "@playwright/mcp@latest", "--headless"))
-            .logEvents(true)
-            .build()
-
-        val client: McpClient = DefaultMcpClient.builder()
-            .key("playwright")
-            .transport(transport)
-            .build()
-
-        try {
-            val tools: List<ToolSpecification> = client.listTools()
-            println("=== Playwright MCP tools ===")
-            tools.forEach { tool -> println("${tool.name()} -> ${tool.description()}") }
-
-            val executor: ToolExecutor = McpToolExecutor(client)
-            val navigateRequest = ToolExecutionRequest.builder()
-                .name("browser_navigate")
-                .arguments(
-                    """
-                    {
-                      "url": "https://www.ibm.com/docs/zh/rpa/23.0.x?topic=text-html-markdown"
+        val rawDom = Playwright.create().use { playwright ->
+            playwright.chromium()
+                .launch(BrowserType.LaunchOptions().setHeadless(true))
+                .use { browser ->
+                    browser.newContext().use { context ->
+                        context.newPage().use { page ->
+                            page.navigate("https://www.ibm.com/docs/zh/rpa/23.0.x?topic=text-html-markdown")
+                            page.waitForLoadState(LoadState.DOMCONTENTLOADED)
+                            page.waitForTimeout(3_000.0)
+                            page.content()
+                        }
                     }
-                    """.trimIndent()
-                )
-                .build()
-            executor.execute(navigateRequest, "default")
-
-            val waitRequest = ToolExecutionRequest.builder()
-                .name("browser_wait_for")
-                .arguments(
-                    """
-                    {
-                      "time": 3
-                    }
-                    """.trimIndent()
-                )
-                .build()
-            executor.execute(waitRequest, "default")
-
-            val evaluateRequest = ToolExecutionRequest.builder()
-                .name("browser_evaluate")
-                .arguments(
-                    """
-                    {
-                      "function": "() => document.documentElement.outerHTML"
-                    }
-                    """.trimIndent()
-                )
-                .build()
-
-            val rawDom = executor.execute(evaluateRequest, "default")
-            val stats = extractReadableMarkdownWithStats(rawDom)
-
-            val outputDir = Path.of("build", "reports", "dom-extract")
-            Files.createDirectories(outputDir)
-            val rawDomFile = outputDir.resolve("raw_dom.html")
-            val extractedFile = outputDir.resolve("extracted.md")
-            val summaryFile = outputDir.resolve("summary.txt")
-
-            Files.writeString(rawDomFile, rawDom, StandardCharsets.UTF_8)
-            Files.writeString(extractedFile, stats.markdown, StandardCharsets.UTF_8)
-            Files.writeString(summaryFile, buildSummary(stats), StandardCharsets.UTF_8)
-
-            println("raw dom -> $rawDomFile")
-            println("extracted markdown -> $extractedFile")
-            println("summary -> $summaryFile")
-            println("raw=${stats.rawLength}, extracted=${stats.markdownLength}, blocks=${stats.keptBlocks}/${stats.totalBlocks}")
-
-            assertTrue(Files.exists(rawDomFile))
-            assertTrue(Files.exists(extractedFile))
-            assertTrue(Files.exists(summaryFile))
-            assertTrue(Files.size(rawDomFile) > 0)
-            assertTrue(Files.size(extractedFile) >= 0)
-            val summaryText = Files.readString(summaryFile, StandardCharsets.UTF_8)
-            assertTrue(summaryText.contains("markdownLength="))
-            assertTrue(summaryText.contains("dedupSkippedByParent="))
-            assertTrue(summaryText.contains("dedupSkippedBySignature="))
-            assertTrue(summaryText.contains("codeSuppressed="))
-            assertTrue(summaryText.contains("nestedSkipped="))
-            assertTrue(summaryText.contains("anchorWrappedLiRecovered="))
-        } finally {
-            client.close()
+                }
         }
+        val stats = extractReadableMarkdownWithStats(rawDom)
+
+        val outputDir = Path.of("build", "reports", "dom-extract")
+        Files.createDirectories(outputDir)
+        val rawDomFile = outputDir.resolve("raw_dom.html")
+        val extractedFile = outputDir.resolve("extracted.md")
+        val summaryFile = outputDir.resolve("summary.txt")
+
+        Files.writeString(rawDomFile, rawDom, StandardCharsets.UTF_8)
+        Files.writeString(extractedFile, stats.markdown, StandardCharsets.UTF_8)
+        Files.writeString(summaryFile, buildSummary(stats), StandardCharsets.UTF_8)
+
+        println("raw dom -> $rawDomFile")
+        println("extracted markdown -> $extractedFile")
+        println("summary -> $summaryFile")
+        println("raw=${stats.rawLength}, extracted=${stats.markdownLength}, blocks=${stats.keptBlocks}/${stats.totalBlocks}")
+
+        assertTrue(Files.exists(rawDomFile))
+        assertTrue(Files.exists(extractedFile))
+        assertTrue(Files.exists(summaryFile))
+        assertTrue(Files.size(rawDomFile) > 0)
+        assertTrue(Files.size(extractedFile) >= 0)
+        val summaryText = Files.readString(summaryFile, StandardCharsets.UTF_8)
+        assertTrue(summaryText.contains("markdownLength="))
+        assertTrue(summaryText.contains("dedupSkippedByParent="))
+        assertTrue(summaryText.contains("dedupSkippedBySignature="))
+        assertTrue(summaryText.contains("codeSuppressed="))
+        assertTrue(summaryText.contains("nestedSkipped="))
+        assertTrue(summaryText.contains("anchorWrappedLiRecovered="))
     }
 
     private fun extractReadableMarkdown(dom: String): String = extractReadableMarkdownWithStats(dom).markdown
